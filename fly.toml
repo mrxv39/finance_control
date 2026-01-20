@@ -1,0 +1,19 @@
+app = "7-icy-glade-8967"
+primary_region = "sin"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  DB_PATH = "/data/gastos.db"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = true
+  auto_start_machines = true
+  min_machines_running = 0
+
+[mounts]
+  source = "gastos_data"
+  destination = "/data"

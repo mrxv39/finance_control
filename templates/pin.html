@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PIN</title>
+</head>
+<body>
+  <h2>Introduce el PIN</h2>
+
+  {% with messages = get_flashed_messages() %}
+    {% if messages %}
+      <ul>
+        {% for m in messages %}<li>{{ m }}</li>{% endfor %}
+      </ul>
+    {% endif %}
+  {% endwith %}
+
+  <form method="post" action="/pin">
+    <input name="pin" inputmode="numeric" required>
+    <button type="submit">Entrar</button>
+  </form>
+</body>
+</html>
