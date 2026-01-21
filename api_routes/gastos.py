@@ -4,6 +4,8 @@ from db import db_exec, db_all
 from api_routes.blueprint import api_bp
 from api_routes.utils import rows_to_dicts
 
+from datetime import datetime, timezone
+
 
 @api_bp.get("/gastos")
 @login_required
@@ -60,9 +62,12 @@ def api_post_gasto():
     except Exception:
         return jsonify({"ok": False, "error": "importe debe ser numérico"}), 400
 
+    created_at = datetime.now(timezone.utc).isoformat()
+
     db_exec(
-        "INSERT INTO gastos (user_id, fecha, categoria, concepto, nota, importe) VALUES (?, ?, ?, ?, ?, ?)",
-        (user_id, fecha, categoria, concepto, nota, importe)
+        "INSERT INTO gastos (user_id, fecha, categoria, concepto, nota, importe, created_at) "
+        "VALUES (?, ?, ?, ?, ?, ?, ?)",
+        (user_id, fecha, categoria, concepto, nota, importe, created_at)
     )
     return jsonify({"ok": True})
 
