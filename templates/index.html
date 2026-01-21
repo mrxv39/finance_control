@@ -36,22 +36,17 @@
     <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:end; margin: 8px 0 14px;">
       <div>
         <label style="font-size:13px; color:#475569;">Mes</label><br>
-        <input id="mesFiltro" type="month" class="form-control"
-               style="padding:10px; border-radius:10px; border:1px solid #cbd5e1;">
+        <input id="mesFiltro" type="month" class="form-control" style="padding:10px; border-radius:10px; border:1px solid #cbd5e1;">
       </div>
 
       <div>
         <label style="font-size:13px; color:#475569;">Categoría</label><br>
-        <select id="catFiltro" class="form-control"
-                style="padding:10px; border-radius:10px; border:1px solid #cbd5e1; min-width:220px;">
-          <option value="">(Todas)</option>
-        </select>
+        <input id="catFiltro" type="text" placeholder="(opcional)" class="form-control" style="padding:10px; border-radius:10px; border:1px solid #cbd5e1;">
       </div>
 
       <div style="flex:1; min-width: 180px;">
         <label style="font-size:13px; color:#475569;">Buscar</label><br>
-        <input id="qFiltro" type="text" placeholder="nota contiene..." class="form-control"
-               style="padding:10px; border-radius:10px; border:1px solid #cbd5e1; width:100%;">
+        <input id="qFiltro" type="text" placeholder="nota contiene..." class="form-control" style="padding:10px; border-radius:10px; border:1px solid #cbd5e1; width:100%;">
       </div>
 
       <button id="btnRefrescar" class="auth-btn" style="width:auto; padding:10px 14px;">Refrescar</button>
@@ -76,8 +71,7 @@
     <form id="formGasto" style="display:flex; gap:10px; flex-wrap:wrap; align-items:end; margin-bottom: 14px;">
       <div>
         <label style="font-size:13px; color:#475569;">Fecha</label><br>
-        <input id="fecha" type="date" required class="form-control"
-               style="padding:10px; border-radius:10px; border:1px solid #cbd5e1;">
+        <input id="fecha" type="date" required class="form-control" style="padding:10px; border-radius:10px; border:1px solid #cbd5e1;">
       </div>
 
       <div>
@@ -86,30 +80,26 @@
                class="form-control" style="padding:10px; border-radius:10px; border:1px solid #cbd5e1;">
       </div>
 
+      <div style="flex:1; min-width: 260px;">
+        <label style="font-size:13px; color:#475569;">Nota</label><br>
+        <input id="nota" type="text" placeholder="(opcional)" class="form-control"
+               style="padding:10px; border-radius:10px; border:1px solid #cbd5e1; width:100%;">
+        <div id="sugerenciaBox" class="hint-sugerencia" style="display:none;"></div>
+      </div>
+
       <div>
         <label style="font-size:13px; color:#475569;">Categoría</label><br>
-        <select id="categoria" required class="form-control"
-                style="padding:10px; border-radius:10px; border:1px solid #cbd5e1; min-width:220px;">
-          <option value="">(Selecciona)</option>
-        </select>
+        <input id="categoria" type="text" required placeholder="Ej: comida"
+               class="form-control" style="padding:10px; border-radius:10px; border:1px solid #cbd5e1;">
       </div>
 
       <div>
         <label style="font-size:13px; color:#475569;">Subcategoría</label><br>
-        <select id="subcategoria" class="form-control"
-                style="padding:10px; border-radius:10px; border:1px solid #cbd5e1; min-width:220px;">
-          <option value="">(Opcional)</option>
-        </select>
+        <input id="concepto" type="text" placeholder="Ej: supermercado"
+               class="form-control" style="padding:10px; border-radius:10px; border:1px solid #cbd5e1;">
       </div>
 
-      <div style="flex:1; min-width: 220px;">
-        <label style="font-size:13px; color:#475569;">Nota</label><br>
-        <input id="nota" type="text" placeholder="(opcional)" class="form-control"
-               style="padding:10px; border-radius:10px; border:1px solid #cbd5e1; width:100%;">
-      </div>
-
-      <button id="btnHoy" type="button" class="auth-btn"
-              style="width:auto; padding:10px 14px; background: linear-gradient(135deg,#10b981,#059669); box-shadow:0 10px 22px rgba(16,185,129,.25);">
+      <button id="btnHoy" type="button" class="auth-btn" style="width:auto; padding:10px 14px; background: linear-gradient(135deg,#10b981,#059669); box-shadow:0 10px 22px rgba(16,185,129,.25);">
         Hoy
       </button>
 
@@ -129,6 +119,7 @@
           <tr style="background: rgba(15,23,42,.03);">
             <th style="text-align:left; padding:10px; font-size:13px; color:#475569;">Fecha</th>
             <th style="text-align:left; padding:10px; font-size:13px; color:#475569;">Categoría</th>
+            <th style="text-align:left; padding:10px; font-size:13px; color:#475569;">Subcat.</th>
             <th style="text-align:left; padding:10px; font-size:13px; color:#475569;">Nota</th>
             <th style="text-align:right; padding:10px; font-size:13px; color:#475569;">Importe</th>
             <th style="text-align:right; padding:10px; font-size:13px; color:#475569;">Borrar</th>

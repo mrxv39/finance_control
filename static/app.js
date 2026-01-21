@@ -16,57 +16,59 @@ function currentMonth() {
   return `${d.getFullYear()}-${mm}`;
 }
 
-let CATS = [];              // [{id,nombre,subcategorias:[{id,nombre}]}]
-let SUBS_BY_CAT = new Map(); // nombreCategoria -> [subcats]
-
-function setSelectOptions(selectEl, options, placeholderText) {
-  selectEl.innerHTML = "";
-  const opt0 = document.createElement("option");
-  opt0.value = "";
-  opt0.textContent = placeholderText || "(Selecciona)";
-  selectEl.appendChild(opt0);
-
-  for (const txt of options) {
-    const opt = document.createElement("option");
-    opt.value = txt;
-    opt.textContent = txt;
-    selectEl.appendChild(opt);
-  }
+function escapeHtml(s) {
+  return (s || "").replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;");
 }
 
-async function cargarCategorias() {
-  // Endpoint creado en gastos_api.py: GET /api/categorias
-  const r = await fetch("/api/categorias");
-  const data = await r.json();
+let categoriaTouched = false;
+let conceptoTouched = false;
+let notaTimer = null;
+let lastSuggestedKey = "";
 
-  CATS = Array.isArray(data) ? data : [];
-  SUBS_BY_CAT = new Map();
+function setSugerenciaUI(text, show) {
+  const box = $("sugerenciaBox");
+  if (!box) return;
+  box.style.display = show ? "block" : "none";
+  box.textContent = show ? text : "";
+}
 
-  const catNames = CATS.map(c => c.nombre).sort((a,b) => a.localeCompare(b));
+async function sugerirDesdeNota() {
+  const notaEl = $("nota");
+  if (!notaEl) return;
 
-  for (const c of CATS) {
-    const subs = (c.subcategorias || []).map(s => s.nombre);
-    SUBS_BY_CAT.set(c.nombre, subs.sort((a,b)=>a.localeCompare(b)));
+  const nota = (notaEl.value || "").trim();
+  if (nota.length < 3) {
+    setSugerenciaUI("", false);
+    lastSuggestedKey = "";
+    return;
   }
 
-  // Select del formulario (categoria/subcategoria)
-  setSelectOptions($("categoria"), catNames, "(Selecciona)");
-  setSelectOptions($("subcategoria"), [], "(Opcional)");
+  // Evita spamear si no cambia
+  if (nota === lastSuggestedKey) return;
+  lastSuggestedKey = nota;
 
-  // Select del filtro de categoría (catFiltro)
-  setSelectOptions($("catFiltro"), catNames, "(Todas)");
+  const url = new URL(location.origin + "/api/sugerir");
+  url.searchParams.set("nota", nota);
 
-  // Cuando cambia categoría en el formulario -> recargar subcategorías
-  $("categoria").addEventListener("change", () => {
-    const cat = $("categoria").value;
-    const subs = SUBS_BY_CAT.get(cat) || [];
-    setSelectOptions($("subcategoria"), subs, "(Opcional)");
-  });
+  const r = await fetch(url.toString());
+  const data = await r.json();
 
-  // Cuando cambia filtro categoría -> recargar lista
-  $("catFiltro").addEventListener("change", () => {
-    cargar().catch(() => {});
-  });
+  const sug = data && data.sugerencia ? data.sugerencia : null;
+  if (!sug) {
+    setSugerenciaUI("Sin sugerencias para esta nota", true);
+    return;
+  }
+
+  const sugText = `Sugerido: ${sug.categoria}${sug.concepto ? " · " + sug.concepto : ""} (x${sug.score})`;
+  setSugerenciaUI(sugText, true);
+
+  // Autorrelleno solo si el usuario no tocó manualmente
+  if (!categoriaTouched && $("categoria")) {
+    $("categoria").value = sug.categoria || "";
+  }
+  if (!conceptoTouched && $("concepto")) {
+    $("concepto").value = sug.concepto || "";
+  }
 }
 
 async function cargar() {
@@ -99,9 +101,10 @@ async function cargar() {
   for (const g of gastos) {
     const tr = document.createElement("tr");
     tr.innerHTML = `
-      <td>${g.fecha}</td>
-      <td><span class="badge text-bg-secondary">${g.categoria}</span></td>
-      <td class="text-muted">${(g.nota || "").replaceAll("<","&lt;")}</td>
+      <td>${escapeHtml(g.fecha)}</td>
+      <td><span class="badge text-bg-secondary">${escapeHtml(g.categoria)}</span></td>
+      <td class="text-muted">${escapeHtml(g.concepto || "")}</td>
+      <td class="text-muted">${escapeHtml(g.nota || "")}</td>
       <td class="text-end fw-semibold">${money(g.importe)}</td>
       <td class="text-end">
         <button class="btn btn-sm btn-outline-danger" data-del="${g.id}">✕</button>
@@ -122,6 +125,28 @@ async function cargar() {
 function initDefaults() {
   $("fecha").value = new Date().toISOString().slice(0, 10);
   $("mesFiltro").value = currentMonth();
+
+  // Reset flags al iniciar
+  categoriaTouched = false;
+  conceptoTouched = false;
+
+  // Si el usuario toca manualmente categoría/concepto, no sobreescribimos
+  if ($("categoria")) {
+    $("categoria").addEventListener("input", () => { categoriaTouched = true; });
+  }
+  if ($("concepto")) {
+    $("concepto").addEventListener("input", () => { conceptoTouched = true; });
+  }
+
+  // Debounce de sugerencias desde nota
+  if ($("nota")) {
+    $("nota").addEventListener("input", () => {
+      clearTimeout(notaTimer);
+      notaTimer = setTimeout(() => {
+        sugerirDesdeNota().catch(() => {});
+      }, 350);
+    });
+  }
 }
 
 $("btnHoy").addEventListener("click", () => {
@@ -140,7 +165,7 @@ $("formGasto").addEventListener("submit", async (e) => {
   const payload = {
     importe: $("importe").value,
     categoria: $("categoria").value,
-    subcategoria: $("subcategoria").value, // opcional
+    concepto: $("concepto") ? $("concepto").value : "",
     fecha: $("fecha").value,
     nota: $("nota").value
   };
@@ -159,7 +184,14 @@ $("formGasto").addEventListener("submit", async (e) => {
 
   $("importe").value = "";
   $("nota").value = "";
-  // mantenemos categoría y subcategoría seleccionadas para meter varios gastos rápido
+  if ($("concepto")) $("concepto").value = "";
+
+  // Tras guardar, permitimos sugerir de nuevo sin “bloqueo”
+  categoriaTouched = false;
+  conceptoTouched = false;
+  setSugerenciaUI("", false);
+  lastSuggestedKey = "";
+
   await cargar();
 });
 
@@ -172,8 +204,5 @@ if ("serviceWorker" in navigator) {
   });
 }
 
-(async () => {
-  initDefaults();
-  await cargarCategorias();
-  await cargar();
-})();
+initDefaults();
+cargar();
