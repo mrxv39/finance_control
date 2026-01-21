@@ -1,37 +1,47 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Registro</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Crear cuenta · Gastos</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
-<body>
-  <h2>Crear usuario</h2>
+<body class="auth-bg">
 
-  {% with messages = get_flashed_messages() %}
-    {% if messages %}
-      <ul>
-        {% for m in messages %}<li>{{ m }}</li>{% endfor %}
-      </ul>
-    {% endif %}
-  {% endwith %}
+  <div class="auth-wrap">
+    <div class="auth-card">
+      <div class="auth-head">
+        <div class="auth-logo">🧾</div>
+        <h1>Crear cuenta</h1>
+        <p>Crea tu usuario para empezar a registrar gastos.</p>
+      </div>
 
-  <form method="post" action="/register">
-    <div>
-      <label>Usuario</label><br>
-      <input name="username" autocomplete="username" required>
-    </div>
-    <div style="margin-top:8px;">
-      <label>Contraseña</label><br>
-      <input name="password" type="password" autocomplete="new-password" required>
-    </div>
-    <div style="margin-top:12px;">
-      <button type="submit">Crear</button>
-    </div>
-  </form>
+      {% with messages = get_flashed_messages() %}
+        {% if messages %}
+          <div class="auth-alert">{{ messages[0] }}</div>
+        {% endif %}
+      {% endwith %}
 
-  <p style="margin-top:16px;">
-    <a href="/login">Volver al login</a>
-  </p>
+      <form method="post" action="{{ url_for('auth.register_post') }}" class="auth-form">
+        <label class="auth-label">
+          Usuario
+          <input class="auth-input" type="text" name="username" placeholder="Mínimo 3 caracteres" required>
+        </label>
+
+        <label class="auth-label">
+          Contraseña
+          <input class="auth-input" type="password" name="password" placeholder="Mínimo 4 caracteres" required>
+        </label>
+
+        <button class="auth-btn" type="submit">Crear usuario</button>
+      </form>
+
+      <div class="auth-foot">
+        ¿Ya tienes cuenta?
+        <a class="auth-link" href="{{ url_for('auth.login') }}">Volver a login</a>
+      </div>
+    </div>
+  </div>
+
 </body>
 </html>

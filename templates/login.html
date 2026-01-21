@@ -1,37 +1,47 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Login</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Login · Gastos</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
-<body>
-  <h2>Iniciar sesión</h2>
+<body class="auth-bg">
 
-  {% with messages = get_flashed_messages() %}
-    {% if messages %}
-      <ul>
-        {% for m in messages %}<li>{{ m }}</li>{% endfor %}
-      </ul>
-    {% endif %}
-  {% endwith %}
+  <div class="auth-wrap">
+    <div class="auth-card">
+      <div class="auth-head">
+        <div class="auth-logo">💸</div>
+        <h1>Iniciar sesión</h1>
+        <p>Accede a tu cuenta para gestionar tus gastos.</p>
+      </div>
 
-  <form method="post" action="/login">
-    <div>
-      <label>Usuario</label><br>
-      <input name="username" autocomplete="username" required>
-    </div>
-    <div style="margin-top:8px;">
-      <label>Contraseña</label><br>
-      <input name="password" type="password" autocomplete="current-password" required>
-    </div>
-    <div style="margin-top:12px;">
-      <button type="submit">Entrar</button>
-    </div>
-  </form>
+      {% with messages = get_flashed_messages() %}
+        {% if messages %}
+          <div class="auth-alert">{{ messages[0] }}</div>
+        {% endif %}
+      {% endwith %}
 
-  <p style="margin-top:16px;">
-    ¿No tienes cuenta? <a href="/register">Crear usuario</a>
-  </p>
+      <form method="post" action="{{ url_for('auth.login_post') }}" class="auth-form">
+        <label class="auth-label">
+          Usuario
+          <input class="auth-input" type="text" name="username" placeholder="Tu usuario" required>
+        </label>
+
+        <label class="auth-label">
+          Contraseña
+          <input class="auth-input" type="password" name="password" placeholder="Tu contraseña" required>
+        </label>
+
+        <button class="auth-btn" type="submit">Entrar</button>
+      </form>
+
+      <div class="auth-foot">
+        ¿No tienes cuenta?
+        <a class="auth-link" href="{{ url_for('auth.register') }}">Crear usuario</a>
+      </div>
+    </div>
+  </div>
+
 </body>
 </html>

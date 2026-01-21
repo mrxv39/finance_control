@@ -1,24 +1,41 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>PIN</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>PIN · Gastos</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
-<body>
-  <h2>Introduce el PIN</h2>
+<body class="auth-bg">
 
-  {% with messages = get_flashed_messages() %}
-    {% if messages %}
-      <ul>
-        {% for m in messages %}<li>{{ m }}</li>{% endfor %}
-      </ul>
-    {% endif %}
-  {% endwith %}
+  <div class="auth-wrap">
+    <div class="auth-card">
+      <div class="auth-head">
+        <div class="auth-logo">🔒</div>
+        <h1>PIN</h1>
+        <p>Introduce el PIN para acceder a login/registro.</p>
+      </div>
 
-  <form method="post" action="/pin">
-    <input name="pin" inputmode="numeric" required>
-    <button type="submit">Entrar</button>
-  </form>
+      {% with messages = get_flashed_messages() %}
+        {% if messages %}
+          <div class="auth-alert">{{ messages[0] }}</div>
+        {% endif %}
+      {% endwith %}
+
+      <form method="post" action="{{ url_for('auth.pin_post') }}" class="auth-form">
+        <label class="auth-label">
+          PIN
+          <input class="auth-input" type="password" name="pin" placeholder="PIN" required>
+        </label>
+
+        <button class="auth-btn" type="submit">Continuar</button>
+      </form>
+
+      <div class="auth-foot" style="opacity:.9">
+        Si no sabes el PIN, revisa tu secret <b>APP_PIN</b> en Fly.
+      </div>
+    </div>
+  </div>
+
 </body>
 </html>

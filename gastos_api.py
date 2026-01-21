@@ -1,112 +1,102 @@
 from flask import Blueprint, request, jsonify, session
-from db import db_exec, db_all
 from auth import login_required
+from db import db_exec, db_all, db_one
 
-gastos_api = Blueprint("gastos_api", __name__)
+api_bp = Blueprint("api", __name__, url_prefix="/api")
 
 
-@gastos_api.get("/api/gastos")
+def _rows_to_dicts(rows):
+    """Convierte sqlite3.Row (o dicts) a lista de dicts JSON-serializable."""
+    out = []
+    for r in rows or []:
+        # sqlite3.Row soporta dict(r)
+        try:
+            out.append(dict(r))
+        except Exception:
+            out.append(r)
+    return out
+
+
+@api_bp.get("/gastos")
 @login_required
-def get_gastos():
-    uid = session["user_id"]
+def api_get_gastos():
+    user_id = int(session.get("user_id"))
+
     rows = db_all(
-        """
-        SELECT id, fecha, categoria, nota, importe, created_at
-        FROM gastos
-        WHERE user_id = ?
-        ORDER BY created_at DESC, id DESC
-        """,
-        (uid,)
+        "SELECT id, fecha, concepto, categoria, importe "
+        "FROM gastos WHERE user_id = ? "
+        "ORDER BY fecha DESC, id DESC",
+        (user_id,)
     )
-    return jsonify([dict(r) for r in rows])
+    return jsonify(_rows_to_dicts(rows))
 
 
-@gastos_api.post("/api/gastos")
+@api_bp.post("/gastos")
 @login_required
-def add_gasto():
-    uid = session["user_id"]
+def api_post_gastos():
+    user_id = int(session.get("user_id"))
 
-    # Tu frontend manda JSON (POST /api/gastos)
     data = request.get_json(silent=True) or {}
-
     fecha = (data.get("fecha") or "").strip()
+    concepto = (data.get("concepto") or "").strip()
     categoria = (data.get("categoria") or "").strip()
-    nota = (data.get("nota") or "").strip()
-    importe = data.get("importe", None)
+    importe = data.get("importe")
 
-    if not fecha or not categoria or importe is None:
-        return jsonify({"ok": False, "error": "Faltan datos"}), 400
+    if not fecha or not concepto or importe is None:
+        return jsonify({"ok": False, "error": "Faltan campos: fecha, concepto, importe"}), 400
 
     try:
-        importe_val = float(importe)
+        importe = float(importe)
     except Exception:
-        return jsonify({"ok": False, "error": "Importe inválido"}), 400
+        return jsonify({"ok": False, "error": "importe debe ser numérico"}), 400
+
+    if not categoria:
+        categoria = "Sin categoría"
 
     db_exec(
-        """
-        INSERT INTO gastos (fecha, categoria, importe, nota, created_at, user_id)
-        VALUES (?, ?, ?, ?, datetime('now'), ?)
-        """,
-        (fecha, categoria, importe_val, nota, uid)
+        "INSERT INTO gastos (user_id, fecha, concepto, categoria, importe) "
+        "VALUES (?, ?, ?, ?, ?)",
+        (user_id, fecha, concepto, categoria, importe)
     )
     return jsonify({"ok": True})
 
 
-@gastos_api.post("/api/gastos/delete")
+@api_bp.get("/resumen")
 @login_required
-def delete_gasto():
-    uid = session["user_id"]
-    data = request.get_json(silent=True) or {}
-    gasto_id = data.get("id")
+def api_get_resumen():
+    """
+    Soporta:
+      GET /api/resumen
+      GET /api/resumen?mes=YYYY-MM
+    """
+    user_id = int(session.get("user_id"))
+    mes = (request.args.get("mes") or "").strip()
 
-    try:
-        gasto_id = int(gasto_id)
-    except Exception:
-        return jsonify({"ok": False, "error": "ID inválido"}), 400
+    params = [user_id]
+    where_mes = ""
 
-    db_exec("DELETE FROM gastos WHERE id = ? AND user_id = ?", (gasto_id, uid))
-    return jsonify({"ok": True})
+    # Si viene mes=YYYY-MM filtramos por prefijo (fecha tipo 'YYYY-MM-DD')
+    if mes:
+        where_mes = " AND substr(fecha, 1, 7) = ? "
+        params.append(mes)
 
-
-@gastos_api.get("/api/resumen")
-@login_required
-def resumen():
-    uid = session["user_id"]
-    mes = (request.args.get("mes") or "").strip()  # esperado: "YYYY-MM"
-
-    if not mes:
-        return jsonify({"ok": False, "error": "Falta mes"}), 400
-
-    # IMPORTANTE:
-    # Tu fecha en DB está como "DD/MM/YYYY" (ej: 20/01/2026).
-    # Para filtrar por mes "YYYY-MM" convertimos con substr:
-    # yyyy-mm = substr(fecha,7,4) || '-' || substr(fecha,4,2)
-    rows = db_all(
-        """
-        SELECT categoria, ROUND(SUM(importe), 2) AS total
-        FROM gastos
-        WHERE user_id = ?
-          AND (substr(fecha,7,4) || '-' || substr(fecha,4,2)) = ?
-        GROUP BY categoria
-        ORDER BY total DESC
-        """,
-        (uid, mes)
+    por_categoria = db_all(
+        "SELECT categoria, ROUND(SUM(importe), 2) AS total "
+        "FROM gastos "
+        "WHERE user_id = ? " + where_mes +
+        "GROUP BY categoria "
+        "ORDER BY total DESC",
+        tuple(params)
     )
 
-    total_mes_row = db_all(
-        """
-        SELECT ROUND(COALESCE(SUM(importe),0), 2) AS total_mes
-        FROM gastos
-        WHERE user_id = ?
-          AND (substr(fecha,7,4) || '-' || substr(fecha,4,2)) = ?
-        """,
-        (uid, mes)
+    total = db_one(
+        "SELECT ROUND(COALESCE(SUM(importe), 0), 2) AS total "
+        "FROM gastos "
+        "WHERE user_id = ? " + where_mes,
+        tuple(params)
     )
-    total_mes = float(total_mes_row[0]["total_mes"]) if total_mes_row else 0.0
 
     return jsonify({
-        "ok": True,
-        "mes": mes,
-        "total_mes": total_mes,
-        "por_categoria": [dict(r) for r in rows]
+        "total": (total["total"] if total else 0),
+        "por_categoria": _rows_to_dicts(por_categoria),
     })
