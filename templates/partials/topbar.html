@@ -1,0 +1,13 @@
+<header class="topbar">
+  <div>
+    <div class="topbar-title">💸 Gastos</div>
+    <div class="topbar-sub">
+      {% if session.get("username") %}
+        Hola, <b>{{ session.get("username") }}</b>
+      {% endif %}
+      <span id="pwaStatus" class="badge text-bg-secondary" style="margin-left:8px;">Web</span>
+    </div>
+  </div>
+
+  <a class="btn-logout" href="{{ url_for('auth.logout') }}">Cerrar sesión</a>
+</header>

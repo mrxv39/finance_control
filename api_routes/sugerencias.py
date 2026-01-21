@@ -9,7 +9,7 @@ from api_routes.utils import escape_like
 @login_required
 def api_sugerir():
     """
-    Sugiere categoria + concepto a partir de la nota:
+    Sugiere categoria + concepto a partir de la nota (modo "contiene"):
     - Busca en gastos anteriores del usuario donde nota LIKE %texto%
     - Devuelve combinaciones (categoria, concepto) más repetidas (top 5)
     - Incluye sugerencia principal (top 1)
@@ -57,3 +57,66 @@ def api_sugerir():
         }
 
     return jsonify({"ok": True, "sugerencia": sugerencia, "matches": matches})
+
+
+@api_bp.get("/sugerir_nota")
+@login_required
+def api_sugerir_nota():
+    """
+    Autocompletar de NOTAS por prefijo:
+    - Cuando el usuario escribe 'l' debe sugerir notas guardadas que empiecen por 'l'
+      (ej. 'late ron').
+    - Devuelve top 8 notas distintas (más frecuentes y recientes).
+    - También devuelve la categoria/concepto más reciente asociada a esa nota (para autopoblar).
+    """
+    user_id = int(session.get("user_id"))
+    pref = (request.args.get("pref") or "").strip()
+
+    if len(pref) < 1:
+        return jsonify({"ok": True, "matches": []})
+
+    esc = escape_like(pref)
+    like = f"{esc}%"
+
+    rows = db_all(
+        """
+        SELECT
+          nota,
+          MAX(id) AS last_id,
+          COUNT(*) AS n
+        FROM gastos
+        WHERE user_id = ?
+          AND COALESCE(nota,'') LIKE ? ESCAPE '\\'
+          AND TRIM(COALESCE(nota,'')) <> ''
+        GROUP BY nota
+        ORDER BY n DESC, last_id DESC
+        LIMIT 8
+        """,
+        (user_id, like)
+    )
+
+    matches = []
+    for r in rows or []:
+        nota_txt = r["nota"]
+        # Para cada nota sugerida, sacamos la categoría/concepto del registro más reciente con esa nota
+        meta = db_all(
+            """
+            SELECT categoria, COALESCE(concepto,'') AS concepto
+            FROM gastos
+            WHERE user_id = ? AND nota = ?
+            ORDER BY id DESC
+            LIMIT 1
+            """,
+            (user_id, nota_txt)
+        )
+        cat = meta[0]["categoria"] if meta else ""
+        con = meta[0]["concepto"] if meta else ""
+
+        matches.append({
+            "nota": nota_txt,
+            "n": r["n"],
+            "categoria": cat,
+            "concepto": con,
+        })
+
+    return jsonify({"ok": True, "matches": matches})

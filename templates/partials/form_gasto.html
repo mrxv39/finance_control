@@ -1,0 +1,38 @@
+<form id="formGasto" style="display:flex; gap:10px; flex-wrap:wrap; align-items:flex-start; margin-bottom:14px;">
+
+  <div>
+    <label style="font-size:13px; color:#475569;">Fecha</label><br>
+    <input id="fecha" type="date" required class="form-control">
+  </div>
+
+  <div>
+    <label style="font-size:13px; color:#475569;">Importe</label><br>
+    <input id="importe" type="number" step="0.01" required placeholder="0.00" class="form-control">
+  </div>
+
+  <!-- NOTA + SUGERENCIAS -->
+  <div class="sugerencia-wrapper" style="flex:1; min-width:260px;">
+    <label style="font-size:13px; color:#475569;">Nota</label><br>
+    <input id="nota" type="text" placeholder="(opcional)" class="form-control">
+    <div id="sugerenciaBox" class="hint-sugerencia"></div>
+  </div>
+
+  <div>
+    <label style="font-size:13px; color:#475569;">Categoría</label><br>
+    <input id="categoria" type="text" required placeholder="Ej: comida" class="form-control">
+  </div>
+
+  <div>
+    <label style="font-size:13px; color:#475569;">Subcategoría</label><br>
+    <input id="concepto" type="text" placeholder="Ej: supermercado" class="form-control">
+  </div>
+
+  <button id="btnHoy" type="button" class="auth-btn"
+          style="width:auto; background:linear-gradient(135deg,#10b981,#059669);">
+    Hoy
+  </button>
+
+  <button type="submit" class="auth-btn" style="width:auto;">
+    Guardar
+  </button>
+</form>
