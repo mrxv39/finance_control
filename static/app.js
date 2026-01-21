@@ -16,6 +16,59 @@ function currentMonth() {
   return `${d.getFullYear()}-${mm}`;
 }
 
+let CATS = [];              // [{id,nombre,subcategorias:[{id,nombre}]}]
+let SUBS_BY_CAT = new Map(); // nombreCategoria -> [subcats]
+
+function setSelectOptions(selectEl, options, placeholderText) {
+  selectEl.innerHTML = "";
+  const opt0 = document.createElement("option");
+  opt0.value = "";
+  opt0.textContent = placeholderText || "(Selecciona)";
+  selectEl.appendChild(opt0);
+
+  for (const txt of options) {
+    const opt = document.createElement("option");
+    opt.value = txt;
+    opt.textContent = txt;
+    selectEl.appendChild(opt);
+  }
+}
+
+async function cargarCategorias() {
+  // Endpoint creado en gastos_api.py: GET /api/categorias
+  const r = await fetch("/api/categorias");
+  const data = await r.json();
+
+  CATS = Array.isArray(data) ? data : [];
+  SUBS_BY_CAT = new Map();
+
+  const catNames = CATS.map(c => c.nombre).sort((a,b) => a.localeCompare(b));
+
+  for (const c of CATS) {
+    const subs = (c.subcategorias || []).map(s => s.nombre);
+    SUBS_BY_CAT.set(c.nombre, subs.sort((a,b)=>a.localeCompare(b)));
+  }
+
+  // Select del formulario (categoria/subcategoria)
+  setSelectOptions($("categoria"), catNames, "(Selecciona)");
+  setSelectOptions($("subcategoria"), [], "(Opcional)");
+
+  // Select del filtro de categoría (catFiltro)
+  setSelectOptions($("catFiltro"), catNames, "(Todas)");
+
+  // Cuando cambia categoría en el formulario -> recargar subcategorías
+  $("categoria").addEventListener("change", () => {
+    const cat = $("categoria").value;
+    const subs = SUBS_BY_CAT.get(cat) || [];
+    setSelectOptions($("subcategoria"), subs, "(Opcional)");
+  });
+
+  // Cuando cambia filtro categoría -> recargar lista
+  $("catFiltro").addEventListener("change", () => {
+    cargar().catch(() => {});
+  });
+}
+
 async function cargar() {
   const mes = $("mesFiltro").value || currentMonth();
   const categoria = $("catFiltro").value;
@@ -87,6 +140,7 @@ $("formGasto").addEventListener("submit", async (e) => {
   const payload = {
     importe: $("importe").value,
     categoria: $("categoria").value,
+    subcategoria: $("subcategoria").value, // opcional
     fecha: $("fecha").value,
     nota: $("nota").value
   };
@@ -105,6 +159,7 @@ $("formGasto").addEventListener("submit", async (e) => {
 
   $("importe").value = "";
   $("nota").value = "";
+  // mantenemos categoría y subcategoría seleccionadas para meter varios gastos rápido
   await cargar();
 });
 
@@ -117,5 +172,8 @@ if ("serviceWorker" in navigator) {
   });
 }
 
-initDefaults();
-cargar();
+(async () => {
+  initDefaults();
+  await cargarCategorias();
+  await cargar();
+})();

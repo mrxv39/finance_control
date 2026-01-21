@@ -1,0 +1,133 @@
+/* ===== Barra superior + layout ===== */
+
+.topbar{
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: rgba(255,255,255,.92);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(15,23,42,.08);
+}
+
+.topbar-title{
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: #0f172a;
+}
+
+.topbar-sub{
+  margin-top: 2px;
+  font-size: 13px;
+  color: #475569;
+}
+
+.btn-logout{
+  display: inline-block;
+  padding: 10px 12px;
+  border-radius: 10px;
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 14px;
+  color: #ffffff;
+  background: #ef4444;
+  box-shadow: 0 10px 22px rgba(239,68,68,.25);
+}
+.btn-logout:hover{ filter: brightness(1.05); }
+.btn-logout:active{ transform: translateY(1px); }
+
+.app-container{
+  max-width: 1100px;   /* ajusta: 960 / 1100 / 1200 si quieres */
+  margin: 0 auto;      /* centra */
+}
+
+/* ===== “Bootstrap-like” utilities que usa tu app.js ===== */
+
+.text-end { text-align: right !important; }
+.fw-semibold { font-weight: 600 !important; }
+.text-muted { color: #64748b !important; }
+
+/* Badge */
+.badge{
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1;
+  border: 1px solid rgba(15,23,42,.10);
+}
+.text-bg-secondary{
+  background: rgba(15,23,42,.06);
+  color: #0f172a;
+}
+
+/* Buttons */
+.btn{
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px solid rgba(15,23,42,.14);
+  background: #fff;
+  color: #0f172a;
+  font-weight: 700;
+  cursor: pointer;
+  user-select: none;
+}
+.btn:hover{ filter: brightness(1.02); }
+.btn:active{ transform: translateY(1px); }
+
+.btn-sm{
+  padding: 6px 8px;
+  border-radius: 10px;
+  font-size: 13px;
+}
+
+/* “Outline danger” para el botón ✕ */
+.btn-outline-danger{
+  border-color: rgba(239,68,68,.45);
+  color: #ef4444;
+  background: rgba(239,68,68,.06);
+}
+.btn-outline-danger:hover{
+  background: rgba(239,68,68,.12);
+}
+
+/* ===== Tabla (alineación y paddings) ===== */
+
+/* Asegura que TH y TD tengan el mismo padding -> columnas alineadas */
+table{ width: 100%; border-collapse: collapse; }
+
+thead th{
+  text-align: left;
+  padding: 10px;
+  font-size: 13px;
+  color: #475569;
+  background: rgba(15,23,42,.03);
+  border-bottom: 1px solid rgba(15,23,42,.08);
+}
+
+tbody td{
+  padding: 10px;
+  border-bottom: 1px solid rgba(15,23,42,.06);
+  vertical-align: top;
+}
+
+/* Mantiene importe y borrar compactos */
+tbody td.text-end{
+  white-space: nowrap;
+}
+
+/* Última columna (borrar) un pelín más estrecha */
+thead th:last-child,
+tbody td:last-child{
+  width: 70px;
+}
