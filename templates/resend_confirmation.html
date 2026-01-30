@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Crear cuenta · Gastos</title>
+  <title>Reenviar confirmación · Gastos</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body class="auth-bg">
@@ -11,9 +11,9 @@
   <div class="auth-wrap">
     <div class="auth-card">
       <div class="auth-head">
-        <div class="auth-logo">🧾</div>
-        <h1>Crear cuenta</h1>
-        <p>Crea tu usuario para empezar a registrar gastos.</p>
+        <div class="auth-logo">📧</div>
+        <h1>Reenviar confirmación</h1>
+        <p>Ingresa tu email para recibir un nuevo link de confirmación.</p>
       </div>
 
       {% with messages = get_flashed_messages(with_categories=true) %}
@@ -23,27 +23,17 @@
         {% endif %}
       {% endwith %}
 
-      <form method="post" action="{{ url_for('auth.register_post') }}" class="auth-form">
+      <form method="post" action="{{ url_for('auth.resend_confirmation_post') }}" class="auth-form">
         <label class="auth-label">
           Email
           <input class="auth-input" type="email" name="email" placeholder="tu@email.com" required>
         </label>
 
-        <label class="auth-label">
-          Contraseña
-          <input class="auth-input" type="password" name="password" placeholder="Mínimo 4 caracteres" required>
-        </label>
-
-        <button class="auth-btn" type="submit">Crear usuario</button>
+        <button class="auth-btn" type="submit">Reenviar confirmación</button>
       </form>
 
       <div class="auth-foot">
-        ¿Ya tienes cuenta?
         <a class="auth-link" href="{{ url_for('auth.login') }}">Volver a login</a>
-      </div>
-
-      <div class="auth-foot" style="margin-top: 10px; font-size: 13px; color: #666;">
-        Nota: Recibirás un email de confirmación después de registrarte.
       </div>
     </div>
   </div>

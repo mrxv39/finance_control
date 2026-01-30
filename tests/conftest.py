@@ -56,12 +56,21 @@ def client(app):
     return app.test_client()
 
 
-def _insert_user(conn: sqlite3.Connection, username="u1", password_hash="x") -> int:
+def _insert_user(conn: sqlite3.Connection, username="u1", password_hash="x", email=None) -> int:
+    """
+    Insert a test user. Supports both old (username) and new (email) auth systems.
+    For new system, user is created as confirmed by default for testing.
+    """
     cur = conn.cursor()
+    
+    # Use email if provided, otherwise use username as email for backward compatibility
+    if email is None:
+        email = f"{username}@test.com"
+    
     cur.execute(
-        "INSERT INTO users (username, password_hash, created_at) "
-        "VALUES (?,?,datetime('now'))",
-        (username, password_hash),
+        "INSERT INTO users (username, email, password_hash, is_confirmed, created_at) "
+        "VALUES (?,?,?,1,datetime('now'))",
+        (username, email, password_hash),
     )
     conn.commit()
     return int(cur.lastrowid)

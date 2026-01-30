@@ -39,7 +39,13 @@ def create_app():
     def root():
         if not session.get("user_id"):
             return redirect(url_for("auth.login"))
-        return render_template("index.html")
+        
+        # Check if user needs onboarding (first CSV import)
+        from onboarding import user_needs_onboarding
+        user_id = session.get("user_id")
+        needs_onboarding = user_needs_onboarding(user_id)
+        
+        return render_template("index.html", needs_onboarding=needs_onboarding)
 
     return app
 

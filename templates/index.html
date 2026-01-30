@@ -7,6 +7,68 @@
 
   <main class="app-container">
 
+    <!-- ONBOARDING MODAL FOR FIRST-TIME USERS -->
+    {% if needs_onboarding %}
+    <div id="onboardingModal" class="onboarding-modal">
+      <div class="onboarding-modal-content">
+        <button class="onboarding-modal-close" onclick="closeOnboardingModal()" aria-label="Cerrar">&times;</button>
+        
+        <div class="onboarding-modal-body">
+          <h2 class="onboarding-title">👋 Bienvenido</h2>
+          
+          <div id="onboardingMainContent">
+            <p class="onboarding-text">
+              Vamos a conocernos mejor.
+            </p>
+            <p class="onboarding-text">
+              Para empezar, ve a tu banco y exporta un CSV con tus movimientos del último año.
+            </p>
+            <p class="onboarding-text">
+              Solo necesitamos estas columnas:
+            </p>
+            <ul class="onboarding-list">
+              <li>Fecha</li>
+              <li>Descripción</li>
+              <li>Importe</li>
+            </ul>
+            <p class="onboarding-text">
+              Si no conoces la categoría de cada gasto, no te preocupes.<br>
+              Yo te ayudaré a categorizar.
+            </p>
+            
+            <div class="onboarding-actions">
+              <a href="/import" class="onboarding-btn-primary">📂 Subir mi CSV</a>
+              <button type="button" class="onboarding-btn-secondary" onclick="showWhyInfo()">
+                ¿Por qué quieres esta información?
+              </button>
+            </div>
+          </div>
+          
+          <div id="onboardingInfoContent" style="display:none;">
+            <p class="onboarding-text">
+              Analizaremos tus gastos e ingresos para entender tus hábitos financieros.
+              Con esta información podré ayudarte a clasificar tus movimientos
+              y más adelante diseñar un presupuesto personalizado adaptado a ti.
+            </p>
+            <p class="onboarding-text">
+              No pasa nada si los datos no están perfectos.
+            </p>
+            
+            <div class="onboarding-actions">
+              <button type="button" class="onboarding-btn-primary" onclick="hideWhyInfo()">
+                Entendido
+              </button>
+            </div>
+          </div>
+        </div>
+        
+        <button type="button" class="onboarding-btn-dismiss" onclick="closeOnboardingModal()">
+          Ahora no
+        </button>
+      </div>
+    </div>
+    {% endif %}
+
     <!-- ERRORES -->
     <div id="errorBox" class="auth-alert" style="display:none;"></div>
 
@@ -19,5 +81,41 @@
 
   <!-- JS modular -->
   <script type="module" src="{{ url_for('static', filename='app.js') }}"></script>
+  
+  <!-- Onboarding modal scripts -->
+  <script>
+    // Auto-show onboarding modal on page load
+    window.addEventListener('DOMContentLoaded', function() {
+      const modal = document.getElementById('onboardingModal');
+      if (modal) {
+        modal.style.display = 'flex';
+      }
+    });
+    
+    function closeOnboardingModal() {
+      const modal = document.getElementById('onboardingModal');
+      if (modal) {
+        modal.style.display = 'none';
+      }
+    }
+    
+    function showWhyInfo() {
+      document.getElementById('onboardingMainContent').style.display = 'none';
+      document.getElementById('onboardingInfoContent').style.display = 'block';
+    }
+    
+    function hideWhyInfo() {
+      document.getElementById('onboardingMainContent').style.display = 'block';
+      document.getElementById('onboardingInfoContent').style.display = 'none';
+    }
+    
+    // Close modal when clicking outside the content
+    window.onclick = function(event) {
+      const modal = document.getElementById('onboardingModal');
+      if (event.target === modal) {
+        closeOnboardingModal();
+      }
+    }
+  </script>
 </body>
 </html>
